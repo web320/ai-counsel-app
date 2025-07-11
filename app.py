@@ -1,82 +1,85 @@
-# app.py
 import streamlit as st
 from datetime import datetime
+import os
 from openai import OpenAI
-import random
+from dotenv import load_dotenv
 
-# --------- OpenAI 설정 ---------
-client = OpenAI(api_key="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")
+# 환경변수 불러오기
+load_dotenv()
+client = OpenAI(api_key=os.getenv("hello"))
 
-# --------- 세션 상태 초기화 ---------
+# 최대 상담 횟수 설정
+MAX_FREE_USAGE = 7
+
+# 세션 상태 초기화
 if "usage_count" not in st.session_state:
     st.session_state.usage_count = 0
 if "last_day" not in st.session_state:
     st.session_state.last_day = datetime.now().date()
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "feedback" not in st.session_state:
+    st.session_state.feedback = []
 
-# 날짜가 바뀌면 초기화
+# 날짜가 바뀌면 사용 횟수 초기화
 if st.session_state.last_day != datetime.now().date():
     st.session_state.usage_count = 0
-    st.session_state.chat_history = []
     st.session_state.last_day = datetime.now().date()
+    st.session_state.chat_history = []
+    st.session_state.feedback = []
 
-MAX_FREE = 7
-
-# --------- 타이틀 ---------
-st.markdown("<h1 style='text-align:center;'>💬 루루 AI 고민상담소</h1>", unsafe_allow_html=True)
-
-# --------- 감정 선택 ---------
-feeling = st.radio("😊 오늘 기분은?", ["😢 슬픔", "😨 불안", "😠 화남", "😐 무감정", "😍 설렘"], horizontal=True)
-
-# --------- 입력 ---------
-default_text = f"오늘은 {feeling.split()[1]} 기분이에요..."
-user_input = st.text_input("💭 고민을 적어보세요", value=default_text)
-
-# --------- 사용 횟수 안내 ---------
-st.markdown(f"**🔓 오늘 남은 무료 상담: `{MAX_FREE - st.session_state.usage_count}`회 / {MAX_FREE}회**")
-
-# --------- GPT 응답 함수 ---------
+# GPT-4 응답 함수
 def get_gpt_response(user_input):
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "너는 감정적으로 따뜻한 고민 상담사야. 짧고 공감 가는 말로 10~30단어 이내로 응답해."},
-            {"role": "user", "content": user_input}
-        ],
-        temperature=0.8
-    )
-    return response.choices[0].message.content.strip()
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "넌 따뜻한 여자 상담사야. 불필요한 위로나 조언은 하지 않고, 사용자의 이익이 되도록 진심으로 대답해줘."},
+                {"role": "user", "content": user_input},
+            ],
+            temperature=0.7,
+            max_tokens=600,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"오류가 발생했어요: {e}"
 
-# --------- 버튼 클릭 시 ---------
-if st.button("🧠 AI에게 털어놓기") and user_input.strip() != "":
-    if st.session_state.usage_count < MAX_FREE:
+# 앱 UI
+st.markdown("### 🔐 오늘 남은 무료 상담: **{}회 / {}회**".format(MAX_FREE_USAGE - st.session_state.usage_count, MAX_FREE_USAGE))
+st.markdown("---")
+
+# 사용자 입력 받기
+user_input = st.text_input("**AI에게 고민을 털어놓기...**")
+
+if st.button("🧠 상담 시작") and user_input:
+    if st.session_state.usage_count < MAX_FREE_USAGE:
         ai_response = get_gpt_response(user_input)
-        st.session_state.chat_history.append(("🙋‍♀️ 나", user_input))
-        st.session_state.chat_history.append(("🤖 루루", ai_response))
+        st.session_state.chat_history.append(("나", user_input))
+        st.session_state.chat_history.append(("AI", ai_response))
         st.session_state.usage_count += 1
     else:
-        st.warning("오늘의 무료 상담이 모두 끝났어요. 내일 다시 찾아와 줘!")
+        st.error("⚠️ 오늘의 무료 상담은 모두 사용했어요. 내일 다시 오거나 유료 상담을 이용해주세요.")
 
-# --------- 채팅 히스토리 출력 ---------
+# 대화 내용 표시
+for role, message in st.session_state.chat_history:
+    with st.chat_message(role):
+        st.markdown(message)
+
+# 피드백 기능 추가
 if st.session_state.chat_history:
     st.markdown("---")
-    for sender, msg in st.session_state.chat_history:
-        st.markdown(f"**{sender}:** {msg}")
+    st.markdown("**💬 이 대화는 어땠나요?**")
+    feedback = st.radio("피드백을 남겨주세요", ["좋았어요", "보통이에요", "별로였어요"], key="feedback_radio")
+    if st.button("피드백 제출"):
+        st.session_state.feedback.append((datetime.now().isoformat(), feedback))
+        st.success("고마워요. 더 나은 상담을 위해 참고할게요.")
 
-# --------- 마플샵 버튼 ---------
-st.markdown("""
-<hr>
-<div style="text-align:center;">
-    <a href="https://marpple.shop/kr/ljoovye_co_kr" target="_blank">
-        <button style="padding: 12px 24px; font-size: 18px; background-color:black; color:white; border:none; border-radius:8px;">
-        🎁 엘조뷔 마플샵 가기
-        </button>
-    </a>
-</div>
-""", unsafe_allow_html=True)
+# 관리자용 히스토리 확인 (숨김 기능)
+if "admin" in st.secrets:
+    if st.secrets["admin"] == "true":
+        st.markdown("---")
+        st.subheader("🛠 관리자 히스토리 로그")
+        st.write("대화 수:", len(st.session_state.chat_history))
+        st.write("피드백 수:", len(st.session_state.feedback))
+        st.json(st.session_state.feedback)
 
-# --------- 푸터 ---------
-st.markdown("""
-<p style='text-align:center; font-size:13px; color:gray;'>이 앱은 실험용입니다. 심각한 고민은 전문가에게 꼭 상담하세요.</p>
-""", unsafe_allow_html=True)
