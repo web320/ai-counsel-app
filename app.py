@@ -1,7 +1,6 @@
 import streamlit as st
 from datetime import datetime
 import random
-import pyttsx3
 
 # -------------------- 상태 초기화 --------------------
 if "usage_count" not in st.session_state:
@@ -11,7 +10,7 @@ if "last_day" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
-# 날짜 변경 시 카운트 초기화
+# 날짜 변경 시 초기화
 today = datetime.now().date()
 if st.session_state["last_day"] != today:
     st.session_state["usage_count"] = 0
@@ -51,13 +50,6 @@ def generate_response(user_input):
     ]
     return random.choice(templates).format(user_input)
 
-# -------------------- 음성 출력 --------------------
-def speak_text(text):
-    engine = pyttsx3.init()
-    engine.setProperty('rate', 165)
-    engine.say(text)
-    engine.runAndWait()
-
 # -------------------- 상담 시작 --------------------
 if st.button("🧠 AI에게 털어놓기") and user_input.strip() != "":
     if st.session_state["usage_count"] < MAX_FREE_USES:
@@ -66,8 +58,6 @@ if st.button("🧠 AI에게 털어놓기") and user_input.strip() != "":
         ai_response = generate_response(user_input)
         st.session_state["chat_history"].append(("user", user_input))
         st.session_state["chat_history"].append(("ai", ai_response))
-
-        speak_text(ai_response)
     else:
         st.warning("오늘의 무료 상담 횟수를 모두 사용했어요. 더 많은 상담은 곧 유료로 제공될 예정입니다.")
 
@@ -76,7 +66,8 @@ if st.session_state["chat_history"]:
     st.markdown("---")
     st.markdown("### 📜 오늘의 상담 기록")
     for sender, msg in st.session_state["chat_history"]:
-        if sender == "user":
+        is_user = sender == "user"
+        if is_user:
             st.markdown(f"**🙋‍♀️ 나:** {msg}")
         else:
             st.markdown(f"**🤖 루루:** {msg}")
