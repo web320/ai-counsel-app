@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-client = OpenAI(api_key="sk-...")  # 본인 API 키 입력
+client = OpenAI(api_key="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")  # 본인 API 키 입력
 
 response = client.chat.completions.create(
     model="gpt-4",
@@ -18,7 +18,7 @@ from openai import OpenAI
 import random
 
 # 🔑 OpenAI 클라이언트 세팅
-client = OpenAI(api_key="sk-...")  # 여기에 네 API 키 입력
+client = OpenAI(api_key="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")  # 여기에 네 API 키 입력
 
 # -------------------- 상태 초기화 --------------------
 if "usage_count" not in st.session_state:
