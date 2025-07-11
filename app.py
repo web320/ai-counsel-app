@@ -1,16 +1,5 @@
 import streamlit as st
 from datetime import datetime
-# ❌ 이 줄은 제거!
-# from streamlit_chat import message
-
-# ✅ 아래처럼 바꿔줘:
-for sender, msg in st.session_state["chat_history"]:
-    is_user = sender == "user"
-    if is_user:
-        st.markdown(f"**🙋‍♀️ 나:** {msg}")
-    else:
-        st.markdown(f"**🤖 루루:** {msg}")
-# 메시지 형태 출력용 패키지 (추가 설치 필요 시 pip install streamlit-chat)
 import random
 import pyttsx3
 
@@ -78,7 +67,7 @@ if st.button("🧠 AI에게 털어놓기") and user_input.strip() != "":
         st.session_state["chat_history"].append(("user", user_input))
         st.session_state["chat_history"].append(("ai", ai_response))
 
-        speak_text(ai_response)  # 음성 출력 추가
+        speak_text(ai_response)
     else:
         st.warning("오늘의 무료 상담 횟수를 모두 사용했어요. 더 많은 상담은 곧 유료로 제공될 예정입니다.")
 
@@ -87,8 +76,10 @@ if st.session_state["chat_history"]:
     st.markdown("---")
     st.markdown("### 📜 오늘의 상담 기록")
     for sender, msg in st.session_state["chat_history"]:
-        is_user = sender == "user"
-        message(msg, is_user=is_user)
+        if sender == "user":
+            st.markdown(f"**🙋‍♀️ 나:** {msg}")
+        else:
+            st.markdown(f"**🤖 루루:** {msg}")
 
 # -------------------- 마플샵 배너 --------------------
 st.markdown("""
