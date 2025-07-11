@@ -5,7 +5,7 @@ from openai import OpenAI
 import random
 
 # --------- OpenAI 설정 ---------
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 # --------- 세션 상태 초기화 ---------
 if "usage_count" not in st.session_state:
