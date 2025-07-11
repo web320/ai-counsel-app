@@ -1,6 +1,16 @@
 import streamlit as st
 from datetime import datetime
-from streamlit_chat import message  # 메시지 형태 출력용 패키지 (추가 설치 필요 시 pip install streamlit-chat)
+# ❌ 이 줄은 제거!
+# from streamlit_chat import message
+
+# ✅ 아래처럼 바꿔줘:
+for sender, msg in st.session_state["chat_history"]:
+    is_user = sender == "user"
+    if is_user:
+        st.markdown(f"**🙋‍♀️ 나:** {msg}")
+    else:
+        st.markdown(f"**🤖 루루:** {msg}")
+# 메시지 형태 출력용 패키지 (추가 설치 필요 시 pip install streamlit-chat)
 import random
 import pyttsx3
 
