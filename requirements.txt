@@ -2,3 +2,4 @@ git+https://github.com/AI-Yash/st-chat.git
 streamlit_chat @ git+https://github.com/AI-Yash/st-chat.git
 streamlit
 openai
+streamlit-chat
