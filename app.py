@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 # 환경변수 불러오기
 load_dotenv()
-client = OpenAI(api_key=os.getenv("hello"))
+client = OpenAI(api_key=os.getenv("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"))
 
 # 최대 상담 횟수 설정
 MAX_FREE_USAGE = 7
